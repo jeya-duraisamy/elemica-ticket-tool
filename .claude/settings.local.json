@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -lc 'source ~/.nvm/nvm.sh >/dev/null 2>&1 && nvm use 22 >/dev/null 2>&1 && node --check public/app.js && node --check lib/triage.js && node --check lib/pr-form.js && node --check lib/similar.js && node --check lib/reply.js && echo \"all JS OK\"')",
+      "Bash(bash -lc 'source ~/.nvm/nvm.sh >/dev/null 2>&1 && nvm use 22 >/dev/null 2>&1 && for f in server.js public/app.js lib/triage.js lib/pr-form.js lib/similar.js lib/reply.js; do node --check \"$f\" || exit 1; done && echo \"all JS OK\"')",
+      "Bash(echo \"EXITCODE=$?\")"
+    ]
+  }
+}

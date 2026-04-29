@@ -1,17 +1,18 @@
 {
   "name": "elemica-ticket-tool",
   "version": "1.0.0",
-  "description": "Workshop starter — Elemica × Adva Solutions · Claude Code Workshop · April 29, 2026",
+  "description": "Elemica internal support ticket inbox with AI-assisted triage, similarity, replies, and PR forms.",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node --env-file=.env server.js",
+    "dev": "node --env-file=.env --watch server.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
     "express": "^4.21.2"
   },
   "license": "MIT"

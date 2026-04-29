@@ -51,8 +51,8 @@
   },
   {
     "id": "MIG-0428",
-    "subject": "Supplier Portal SQL Server → PostgreSQL — schema drift in audit log",
-    "body": "POC migration of Supplier Portal from SQL Server to PostgreSQL hit a wall on the audit_log table. Identity column behaviour differs (IDENTITY vs SERIAL/IDENTITY). Need a migration recipe that preserves existing audit_id values without gaps. Currently blocking the broader migration plan.",
+    "subject": "Supplier Portal Oracle → PostgreSQL — migration analysis and planning",
+    "body": "Need an analysis and planning pass for migrating the Supplier Portal database from Oracle to PostgreSQL. Inventory schema objects (tables, sequences, indexes, views, PL/SQL packages, procedures, triggers) and call out Oracle-specific features that won't port cleanly — PL/SQL, hierarchical queries (CONNECT BY), NUMBER/VARCHAR2 type mapping, DUAL, partitioning, sequence vs IDENTITY behaviour. Recommend tooling (ora2pg vs pgloader vs AWS DMS), produce a phased migration plan with effort estimate and a risk register. Output should be enough to scope a follow-on POC and the broader migration plan.",
     "category": "infra-cloud",
     "severity": "medium",
     "reporter": "Engineering Director",
