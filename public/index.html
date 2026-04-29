@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ticket Inbox · Elemica Ticket Tool</title>
+  <title>Ticket inbox · Elemica Ticket Tool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -15,36 +16,36 @@
   <header>
     <div class="brand">
       <div class="brand-name">Elemica <span class="accent">Ticket Tool</span></div>
-      <div class="brand-tag">Support Ticket Inbox</div>
+      <div class="brand-tag">Support ticket inbox</div>
     </div>
     <div class="nav-links">
       <a href="/" class="nav-link">Inbox</a>
-      <a href="/submit.html" class="nav-link">Submit</a>
+      <a href="/submit.html" class="nav-link primary">Submit</a>
     </div>
   </header>
 
   <section class="hero">
     <h2>A plain-English inbox for support tickets.</h2>
     <p>When something breaks — a mapping fails, an integration drops messages, a customer escalates — it lands here as a ticket. Each row below is a short note about what is wrong, who reported it, and how urgent it is.</p>
-    <p>Click a ticket to read the full context. From there you can run AI actions to classify it, find similar past issues, draft a reply, or build a formal change request. The AI proposes; a human always reviews before anything goes out.</p>
+    <p>Open a ticket to read the full context. From there you can run AI actions to classify it, find similar past issues, draft a reply, or build a formal change request. The AI proposes; a human reviews before anything goes out.</p>
   </section>
 
   <div class="page-head">
-    <h1>Ticket Inbox</h1>
-    <p class="lead"><span class="num" id="count">—</span> open tickets across the queue. Click any row to open it.</p>
+    <h1>Ticket inbox</h1>
+    <p class="lead"><span class="num" id="count">—</span> open tickets across the queue. Open a row to begin triage.</p>
   </div>
 
   <div class="filters">
     <div class="chip on" data-filter="all">All</div>
     <div class="chip" data-filter="urgent">Urgent</div>
-    <div class="chip" data-filter="edi-mapping">EDI Mapping</div>
-    <div class="chip" data-filter="xcarrier-change">XCarrier</div>
+    <div class="chip" data-filter="edi-mapping">EDI mapping</div>
+    <div class="chip" data-filter="xcarrier-change">xCarrier</div>
     <div class="chip" data-filter="sap-request">SAP</div>
     <div class="chip" data-filter="escalation">Escalations</div>
     <div class="chip" data-filter="legacy-deployment">Legacy</div>
     <div class="chip" data-filter="idx-extraction">IDX</div>
     <div class="chip" data-filter="infra-cloud">Cloud</div>
-    <input type="text" class="search-input" id="q" placeholder="Search subject or body…">
+    <input type="text" class="search-input" id="q" placeholder="Search subject or body">
   </div>
 
   <div class="ticket-list" id="list"></div>

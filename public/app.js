@@ -1,11 +1,35 @@
 // ─── shared helpers ──────────────────────────────────────────────────────────
 const fmtDate = (iso) => {
+  if (!iso) return "—";
+  return iso.slice(0, 10); // ISO 8601 — YYYY-MM-DD per Elemica brand
+};
+
+const fmtTimestamp = (iso) => {
+  if (!iso) return "";
   const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const date = iso.slice(0, 10);
+  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${date} ${time}`;
 };
 
 const escapeHtml = (s = "") =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const icon = (name, modifier = "icon-md") => `<span class="material-icons ${modifier}">${name}</span>`;
+
+const ACTION_ICONS = {
+  triage: "smart_toy",
+  "pr-form": "description",
+  similar: "search",
+  reply: "chat",
+};
+
+const ACTION_LABELS = {
+  triage: "AI triage",
+  "pr-form": "Generate PR form",
+  similar: "Find similar",
+  reply: "Draft reply",
+};
 
 // ─── /  inbox ────────────────────────────────────────────────────────────────
 async function renderInbox() {
@@ -26,7 +50,7 @@ async function renderInbox() {
       return true;
     });
     count.textContent = filtered.length;
-    list.innerHTML = filtered.map(rowHTML).join("") || `<div style="color:var(--muted);text-align:center;padding:40px;font-size:.9rem">no tickets match.</div>`;
+    list.innerHTML = filtered.map(rowHTML).join("") || `<div class="verdict-none" style="text-align:center;padding:40px">No tickets match the current filter.</div>`;
   };
 
   chips.forEach((c) => c.addEventListener("click", () => {
@@ -53,10 +77,10 @@ const rowHTML = (t) => `
 async function renderTicket() {
   const root = document.getElementById("ticket-root");
   const id = new URLSearchParams(location.search).get("id");
-  if (!id) { root.innerHTML = `<p style="color:var(--muted)">missing ?id= param</p>`; return; }
+  if (!id) { root.innerHTML = `<p class="verdict-none">Missing ticket id.</p>`; return; }
 
   const t = await fetch(`/api/tickets/${encodeURIComponent(id)}`).then((r) => r.ok ? r.json() : null);
-  if (!t) { root.innerHTML = `<p style="color:var(--muted)">ticket not found.</p>`; return; }
+  if (!t) { root.innerHTML = `<p class="verdict-none">Ticket not found.</p>`; return; }
 
   root.innerHTML = `
     <div class="ticket-page">
@@ -74,29 +98,16 @@ async function renderTicket() {
 
         <div class="ticket-body">${escapeHtml(t.body)}</div>
 
-        <h3 style="font-size:.78rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">AI actions</h3>
+        <div class="verdict-label" style="margin-bottom:var(--elemica-space-m)">AI actions</div>
 
         <div class="todo-grid">
-          <button class="todo-btn" data-action="triage">
-            <div class="ic">🤖</div>
-            <div class="name">AI Triage</div>
-            <div class="desc">Classify, route, and flag assumptions</div>
-          </button>
-          <button class="todo-btn" data-action="pr-form">
-            <div class="ic">📋</div>
-            <div class="name">Generate PR Form</div>
-            <div class="desc">Bottom-up estimate for the change request</div>
-          </button>
-          <button class="todo-btn" data-action="similar">
-            <div class="ic">🔍</div>
-            <div class="name">Find Similar</div>
-            <div class="desc">Match against past tickets in the queue</div>
-          </button>
-          <button class="todo-btn" data-action="reply">
-            <div class="ic">💬</div>
-            <div class="name">Draft Reply</div>
-            <div class="desc">Customer-facing draft with a verify gate</div>
-          </button>
+          ${["triage", "pr-form", "similar", "reply"].map((a) => `
+            <button class="todo-btn" data-action="${a}">
+              <div class="ic">${icon(ACTION_ICONS[a], "icon-lg")}</div>
+              <div class="name">${ACTION_LABELS[a]}</div>
+              <div class="desc">${ACTION_DESC[a]}</div>
+            </button>
+          `).join("")}
         </div>
 
         <div class="result-panel" id="result"></div>
@@ -112,9 +123,9 @@ async function renderTicket() {
           <div class="row"><span class="k">severity</span><span class="v">${t.severity}</span></div>
         </div>
         <div class="side-card">
-          <h3>About the AI actions</h3>
-          <p style="font-size:.84rem;color:var(--text);line-height:1.65">
-            Each button on the left runs a small AI helper against this ticket. The result lands in the panel below the buttons. Anything an AI produces is a draft — a human always reviews it before it leaves the team.
+          <h3>About AI actions</h3>
+          <p style="font-size:14px;color:var(--elemica-color-text-secondary);line-height:1.6;letter-spacing:0.25px">
+            Each action runs an AI helper against this ticket. Results appear in the panel below. AI output is a draft — a human reviews before it leaves the team.
           </p>
         </div>
       </aside>
@@ -130,31 +141,47 @@ async function renderTicket() {
   });
 }
 
+const ACTION_DESC = {
+  triage: "Classify, route, and flag assumptions",
+  "pr-form": "Bottom-up estimate for the change request",
+  similar: "Match against past tickets in the queue",
+  reply: "Customer-facing draft with a verify gate",
+};
+
+// ─── AI Triage ───────────────────────────────────────────────────────────────
+const triageHeader = (pillClass, pillText) => `
+  <h3>${icon("smart_toy", "icon-md")} AI triage <span class="pill ${pillClass}">${pillText}</span></h3>
+`;
+
+const errorHeader = (label) => `
+  <h3>${label} <span class="pill" style="background:var(--elemica-color-error-soft);color:var(--elemica-color-error);border-color:var(--elemica-color-error-border)">error</span></h3>
+`;
+
 async function runTriage(btn, id) {
   const result = document.getElementById("result");
   btn.classList.add("loading");
   result.classList.add("on");
-  result.innerHTML = `<h3>🤖 AI Triage <span class="pill">running…</span></h3>`;
+  result.innerHTML = triageHeader("", "Running");
   try {
     const data = await fetch(`/api/tickets/${encodeURIComponent(id)}/triage`, { method: "POST" }).then((r) => r.json());
     if (data.error) {
-      result.innerHTML = `<h3>🤖 AI Triage <span class="pill" style="background:var(--red-soft);color:var(--red);border-color:var(--red-border)">error</span></h3><div class="verdict-error">${escapeHtml(data.message || "Triage failed.")}</div>`;
+      result.innerHTML = `${errorHeader(`${icon("smart_toy", "icon-md")} AI triage`)}<div class="verdict-error">${escapeHtml(data.message || "Triage failed.")}</div>`;
       return;
     }
     const isStub = data.todo === true;
     result.innerHTML = `
-      <h3>🤖 AI Triage <span class="pill ${isStub ? '' : 'done'}">${isStub ? "stub" : "live"}</span></h3>
-      ${isStub ? `<div class="stub-note">⚠ ${escapeHtml(data.note || "Triage is not wired up — placeholder verdict below.")}</div>` : ""}
+      ${triageHeader(isStub ? "" : "done", isStub ? "Stub" : "Live")}
+      ${isStub ? `<div class="stub-note">${icon("warning", "icon-inline")} ${escapeHtml(data.note || "Triage is not wired up — placeholder verdict below.")}</div>` : ""}
       ${verdictHTML(data)}
       <div class="verdict-cta">
-        <button class="btn-primary draft-resolution-btn" type="button">🪄 Draft Resolution</button>
+        <button class="btn-primary draft-resolution-btn" type="button">${icon("auto_fix_high", "icon-inline")} Draft resolution</button>
       </div>
       <div class="resolution-mount" id="resolution-mount"></div>
     `;
     const drBtn = result.querySelector(".draft-resolution-btn");
     if (drBtn) drBtn.addEventListener("click", () => loadResolution(drBtn, id, data));
   } catch (err) {
-    result.innerHTML = `<h3>🤖 AI Triage <span class="pill" style="background:var(--red-soft);color:var(--red);border-color:var(--red-border)">error</span></h3><div class="verdict-error">${escapeHtml(String(err))}</div>`;
+    result.innerHTML = `${errorHeader(`${icon("smart_toy", "icon-md")} AI triage`)}<div class="verdict-error">${escapeHtml(String(err))}</div>`;
   } finally {
     btn.classList.remove("loading");
   }
@@ -167,7 +194,7 @@ const verdictHTML = (d) => {
   const targets = Array.isArray(d.target_systems) ? d.target_systems : [];
   const assumptions = Array.isArray(d.assumptions) ? d.assumptions : [];
   const unverified = Array.isArray(d.unverified) ? d.unverified : [];
-  const noneLine = `<p class="verdict-none">none</p>`;
+  const noneLine = `<p class="verdict-none">None.</p>`;
   return `
     <div class="verdict-hero">
       <span class="tag tag-lg cat-${cat}">${escapeHtml(cat.replace("-", " "))}</span>
@@ -215,7 +242,7 @@ async function loadResolution(btn, ticketId, triageData) {
   const mount = document.getElementById("resolution-mount");
   if (!mount) return;
   btn.disabled = true;
-  btn.textContent = "🪄 Drafting…";
+  btn.innerHTML = `${icon("auto_fix_high", "icon-inline")} Drafting`;
   try {
     const triagePayload = { ...triageData };
     delete triagePayload._usage;
@@ -225,9 +252,9 @@ async function loadResolution(btn, ticketId, triageData) {
       body: JSON.stringify({ ticket_id: ticketId, triage: triagePayload }),
     }).then((r) => r.json());
     if (draft.error) {
-      mount.innerHTML = `<div class="verdict-error">${escapeHtml(draft.message || "Draft Resolution failed.")}</div>`;
+      mount.innerHTML = `<div class="verdict-error">${escapeHtml(draft.message || "Draft resolution failed.")}</div>`;
       btn.disabled = false;
-      btn.textContent = "🪄 Draft Resolution";
+      btn.innerHTML = `${icon("auto_fix_high", "icon-inline")} Draft resolution`;
       return;
     }
     btn.style.display = "none";
@@ -235,7 +262,7 @@ async function loadResolution(btn, ticketId, triageData) {
   } catch (err) {
     mount.innerHTML = `<div class="verdict-error">${escapeHtml(String(err))}</div>`;
     btn.disabled = false;
-    btn.textContent = "🪄 Draft Resolution";
+    btn.innerHTML = `${icon("auto_fix_high", "icon-inline")} Draft resolution`;
   }
 }
 
@@ -248,10 +275,10 @@ function renderResolutionPanel(mount, ticketId, draft) {
   mount.innerHTML = `
     <div class="resolution-panel">
       <div class="resolution-head">
-        <h3>🪄 Resolution Draft <span class="pill ${isStub ? '' : 'done'}">${isStub ? "stub" : "live"}</span></h3>
+        <h3>${icon("auto_fix_high", "icon-md")} Resolution draft <span class="pill ${isStub ? '' : 'done'}">${isStub ? "Stub" : "Live"}</span></h3>
         ${conf !== null ? `<span class="confidence-badge" data-level="${conf >= 75 ? 'high' : conf >= 50 ? 'med' : 'low'}">${conf}% confidence</span>` : ""}
       </div>
-      ${isStub ? `<div class="stub-note">⚠ ${escapeHtml(draft.note || "Resolution is not wired up — placeholder draft below.")}</div>` : ""}
+      ${isStub ? `<div class="stub-note">${icon("warning", "icon-inline")} ${escapeHtml(draft.note || "Resolution is not wired up — placeholder draft below.")}</div>` : ""}
 
       <div class="res-section">
         <label class="res-label" for="res-summary">Summary</label>
@@ -266,11 +293,11 @@ function renderResolutionPanel(mount, ticketId, draft) {
       </div>
 
       <div class="res-section">
-        <div class="res-label">Commands <span class="res-hint">CLI / SQL / API — one per line</span></div>
+        <div class="res-label">Commands <span class="res-hint">CLI, SQL, or API — one per line</span></div>
         <ul class="res-commands" id="res-commands">
           ${commands.length
             ? commands.map((c, i) => `<li><input class="res-input res-mono" data-i="${i}" value="${escapeHtml(c)}" /></li>`).join("")
-            : `<li class="verdict-none">no commands</li>`}
+            : `<li class="verdict-none">No commands.</li>`}
         </ul>
       </div>
 
@@ -281,20 +308,20 @@ function renderResolutionPanel(mount, ticketId, draft) {
 
       ${unverified.length ? `
         <div class="res-section">
-          <div class="res-label">Unverified — must confirm before approving</div>
+          <div class="res-label">Unverified — confirm before approving</div>
           <ul class="verdict-list verdict-unverified">${unverified.map((u) => `<li>${escapeHtml(u)}</li>`).join("")}</ul>
         </div>
       ` : ""}
 
-      <div class="res-human-notice">⚠ Human review required before any commands run.</div>
+      <div class="res-human-notice">${icon("warning", "icon-inline")} Human review required before any commands run.</div>
 
       <label class="res-reviewed">
-        <input type="checkbox" id="res-reviewed" /> I've reviewed this draft
+        <input type="checkbox" id="res-reviewed" /> I have reviewed this draft
       </label>
 
       <div class="res-actions">
         <button class="btn-primary res-approve" id="res-approve" disabled>Approve</button>
-        <button class="btn-secondary res-edit" id="res-edit">Save Edit</button>
+        <button class="btn-secondary res-edit" id="res-edit">Save edit</button>
         <button class="btn-secondary res-reject" id="res-reject">Reject</button>
       </div>
 
@@ -332,7 +359,7 @@ function renderResolutionPanel(mount, ticketId, draft) {
 
   const post = async (action, extra = {}) => {
     const reviewer = getReviewer();
-    if (!reviewer) { showStatus("Reviewer name required.", "err"); return null; }
+    if (!reviewer) { showStatus("Reviewer name is required.", "err"); return null; }
     const payload = {
       ticket_id: ticketId,
       action,
@@ -349,7 +376,7 @@ function renderResolutionPanel(mount, ticketId, draft) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
-      showStatus(`Failed to record: ${String(err)}`, "err");
+      showStatus(`Failed to record action: ${String(err)}`, "err");
       return null;
     }
   };
@@ -358,19 +385,19 @@ function renderResolutionPanel(mount, ticketId, draft) {
     if (approveBtn.disabled) return;
     const saved = await post("approve");
     if (!saved) return;
-    showStatus(`Approved by ${saved.reviewer} at ${new Date(saved.timestamp).toLocaleString()}`, "ok");
+    showStatus(`Approved by ${saved.reviewer} on ${fmtTimestamp(saved.timestamp)}`, "ok");
     lockResolutionPanel(mount);
   });
 
   mount.querySelector("#res-edit").addEventListener("click", async () => {
     const saved = await post("edit");
     if (!saved) return;
-    showStatus(`Edit saved by ${saved.reviewer} at ${new Date(saved.timestamp).toLocaleString()}`, "ok");
+    showStatus(`Edit saved by ${saved.reviewer} on ${fmtTimestamp(saved.timestamp)}`, "ok");
   });
 
   mount.querySelector("#res-reject").addEventListener("click", async () => {
     const reason = (prompt("Reason for rejecting this draft?") || "").trim();
-    if (!reason) { showStatus("Reject cancelled — reason required.", "err"); return; }
+    if (!reason) { showStatus("Rejection cancelled — a reason is required.", "err"); return; }
     const saved = await post("reject", { reject_reason: reason });
     if (!saved) return;
     showStatus(`Rejected by ${saved.reviewer}: ${reason}`, "warn");
@@ -385,32 +412,26 @@ function lockResolutionPanel(mount) {
   if (cb) cb.setAttribute("disabled", "");
 }
 
+// ─── Other AI actions (still JSON dump until each is wired) ─────────────────
 async function runAction(btn, id, action) {
   const result = document.getElementById("result");
   btn.classList.add("loading");
   result.classList.add("on");
-  result.innerHTML = `<h3>${labelForAction(action)} <span class="pill">running…</span></h3>`;
+  result.innerHTML = `<h3>${icon(ACTION_ICONS[action] || "settings", "icon-md")} ${ACTION_LABELS[action] || action} <span class="pill">Running</span></h3>`;
   try {
     const data = await fetch(`/api/tickets/${encodeURIComponent(id)}/${action}`, { method: "POST" }).then((r) => r.json());
     const isStub = data.todo === true;
     result.innerHTML = `
-      <h3>${labelForAction(action)} <span class="pill ${isStub ? '' : 'done'}">${isStub ? "stub" : "live"}</span></h3>
-      ${isStub ? `<div class="stub-note">⚠ ${escapeHtml(data.note || "This action is not wired up yet — placeholder output below.")}</div>` : ""}
+      <h3>${icon(ACTION_ICONS[action] || "settings", "icon-md")} ${ACTION_LABELS[action] || action} <span class="pill ${isStub ? '' : 'done'}">${isStub ? "Stub" : "Live"}</span></h3>
+      ${isStub ? `<div class="stub-note">${icon("warning", "icon-inline")} ${escapeHtml(data.note || "This action is not wired up yet — placeholder output below.")}</div>` : ""}
       <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
     `;
   } catch (err) {
-    result.innerHTML = `<h3>${labelForAction(action)} <span class="pill" style="background:var(--red-soft);color:var(--red);border-color:var(--red-border)">error</span></h3><pre>${escapeHtml(String(err))}</pre>`;
+    result.innerHTML = `${errorHeader(`${icon(ACTION_ICONS[action] || "settings", "icon-md")} ${ACTION_LABELS[action] || action}`)}<pre>${escapeHtml(String(err))}</pre>`;
   } finally {
     btn.classList.remove("loading");
   }
 }
-
-const labelForAction = (a) => ({
-  "triage": "🤖 AI Triage",
-  "pr-form": "📋 Generate PR Form",
-  "similar": "🔍 Find Similar",
-  "reply": "💬 Draft Reply",
-}[a] || a);
 
 // ─── /submit.html ────────────────────────────────────────────────────────────
 function wireSubmit() {
@@ -428,7 +449,7 @@ function wireSubmit() {
       const t = await res.json();
       location.href = `/ticket.html?id=${encodeURIComponent(t.id)}`;
     } else {
-      alert("could not save ticket — see server logs");
+      alert("Could not save the ticket. Check the server logs.");
     }
   });
 }

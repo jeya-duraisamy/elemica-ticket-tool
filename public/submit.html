@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submit Ticket · Elemica Ticket Tool</title>
+  <title>Submit a ticket · Elemica Ticket Tool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -15,7 +16,7 @@
   <header>
     <div class="brand">
       <div class="brand-name">Elemica <span class="accent">Ticket Tool</span></div>
-      <div class="brand-tag">Support Ticket Inbox</div>
+      <div class="brand-tag">Support ticket inbox</div>
     </div>
     <div class="nav-links">
       <a href="/" class="nav-link">Inbox</a>
@@ -25,7 +26,7 @@
 
   <div class="form-card">
     <h2>Submit a ticket</h2>
-    <p class="lead">Paste a new ticket here. It will save to the inbox where the team can pick it up, classify it, and respond.</p>
+    <p class="lead">Paste a new ticket here. It saves to the inbox where the team can pick it up, classify it, and respond.</p>
 
     <form id="submit-form">
       <div class="field">
@@ -39,12 +40,12 @@
           <select id="category" name="category">
             <option value="unknown">Unknown</option>
             <option value="edi-mapping">EDI mapping</option>
-            <option value="xcarrier-change">XCarrier change</option>
+            <option value="xcarrier-change">xCarrier change</option>
             <option value="sap-request">SAP request</option>
             <option value="escalation">Escalation</option>
             <option value="legacy-deployment">Legacy deployment</option>
             <option value="idx-extraction">IDX extraction</option>
-            <option value="infra-cloud">Infra / cloud</option>
+            <option value="infra-cloud">Infra and cloud</option>
           </select>
         </div>
         <div class="field">
@@ -60,15 +61,18 @@
 
       <div class="field">
         <label for="reporter">Reporter</label>
-        <input type="text" id="reporter" name="reporter" placeholder="BA team — Customer Onboarding">
+        <input type="text" id="reporter" name="reporter" placeholder="BA team — Customer onboarding">
       </div>
 
       <div class="field">
         <label for="body">Body</label>
-        <textarea id="body" name="body" rows="8" required placeholder="What's broken? What systems are involved? Who reported it?"></textarea>
+        <textarea id="body" name="body" rows="8" required placeholder="What is broken? What systems are involved? Who reported it?"></textarea>
       </div>
 
-      <button type="submit" class="btn-primary">Save ticket →</button>
+      <button type="submit" class="btn-primary">
+        <span class="material-icons icon-inline">save</span>
+        Save ticket
+      </button>
     </form>
   </div>
 

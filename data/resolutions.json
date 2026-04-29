@@ -1,0 +1,46 @@
+[
+  {
+    "ticket_id": "XCAR-9821",
+    "action": "approve",
+    "reviewer": "Jey",
+    "timestamp": "2026-04-29T15:16:43.250Z",
+    "draft": {
+      "summary": "Scope and plan a new EU regional carrier adapter for the customer's customized xCarrier instance, covering rate quote, manifest, 4x6 PDF label, tracking webhook, and cancellation, targeting mid-May UAT.",
+      "steps": [
+        "Open an xCarrier change request linked to XCAR-9821 and capture the carrier name, EU coverage, and contractual status from the customer before estimating.",
+        "Review the attached carrier API documentation against the five required functions (rate quote, manifest, label, tracking webhook, cancellation) and produce a function-by-function gap analysis versus the existing xCarrier adapter framework.",
+        "Request OAuth 2.0 sandbox client credentials, token endpoint, token lifetime, and refresh semantics from the carrier; confirm whether sandbox is already provisioned.",
+        "Confirm label return format (native 4x6 PDF vs base64 vs ZPL fallback) and cancellation constraints (time window, partial cancel) with the carrier; if PDF is not native, add a rendering task to the work breakdown.",
+        "Inspect the customer's existing xCarrier customizations to confirm a new carrier adapter can be added without conflicting with current patterns; document any refactor needed.",
+        "Verify the customer's existing inbound webhook endpoint can receive the new carrier's tracking callbacks (URL, IP allowlist, auth scheme, payload schema) and plan any listener changes.",
+        "Size capacity for 2,000 shipments/month at go-live scaling to ~8,000/month and confirm the current xCarrier instance (DB, queue, label storage) headroom; flag any scaling work.",
+        "Produce a delivery plan with milestones backing into mid-May UAT: design sign-off, adapter build, sandbox integration test, end-to-end UAT entry criteria, and target production go-live date.",
+        "Share the plan, assumptions, and open questions with the customer for confirmation before development kickoff.",
+        "Once confirmed, create implementation subtasks per function and a UAT test plan covering happy path, auth token refresh, webhook retry, and cancellation edge cases."
+      ],
+      "commands": [],
+      "client_message": "Thanks for the request to add the new EU regional parcel carrier to your customized xCarrier instance. We've reviewed the triage and the five required functions (rate quote, manifest, 4x6 PDF label, tracking webhook, cancellation) and are putting together a delivery plan against your mid-May UAT target. To finalize scope and timeline, could you please confirm: (1) the carrier name and EU country coverage, (2) status of OAuth 2.0 sandbox and production credentials, (3) whether the carrier returns a native 4x6 PDF label or another format, (4) token lifetime/refresh details, (5) cancellation constraints (time window, partial cancel support), (6) any rate quote latency or webhook SLA expectations, and (7) your target production go-live date after UAT. Once we have these we will share a milestone plan and confirm capacity for the 2,000 to 8,000 shipments/month growth profile.",
+      "confidence": 0.6,
+      "unverified": [
+        "Specific carrier name and EU country coverage",
+        "Availability of OAuth 2.0 sandbox and production client credentials",
+        "Whether the carrier API natively returns a 4x6 PDF label or requires client-side rendering / ZPL fallback",
+        "OAuth token lifetime and refresh requirements",
+        "Cancellation API constraints (time window, partial cancellation support)",
+        "Rate quote latency and tracking webhook delivery SLAs",
+        "Production go-live date relative to mid-May UAT",
+        "Whether existing xCarrier customizations conflict with adding a new adapter",
+        "Compatibility of the customer's existing inbound webhook endpoint with the new carrier's tracking callbacks",
+        "Current xCarrier instance capacity headroom for the projected 8,000 shipments/month",
+        "Billing/contractual status with the new carrier",
+        "That mid-May refers to the current calendar year"
+      ],
+      "requires_human": true,
+      "_usage": {
+        "input_tokens": 1583,
+        "output_tokens": 1309
+      }
+    },
+    "reject_reason": null
+  }
+]
